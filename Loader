@@ -1,0 +1,462 @@
+local GAMES = {
+	{
+		Name = "Run For Brainrots",
+		Desc = "Run For Brainrots!",
+		PlaceIds = {94702395375549},
+		Color = Color3.fromRGB(255, 170, 60),
+		Url = "https://luarun.com/s/01a20362-dc1e-714a-ac4e-ba8c3b81215f",
+	},
+	{
+		Name = "+1 Venom Evolution",
+		Desc = "+1 Venom Evolution",
+		PlaceIds = {116448925875915},
+		Color = Color3.fromRGB(200, 60, 60),
+		Url = "https://luarun.com/s/01a20371-ea3a-7699-b422-4bb4d48ef781",
+	},
+	{
+		Name = "+1 Spider Arm",
+		Desc = "+1 Spider Arm",
+		PlaceIds = {117734411290994},
+		Color = Color3.fromRGB(230, 70, 180),
+		Url = "https://luarun.com/s/01a2037a-8cad-7c8e-8137-eccbb491e9e4",
+	},
+	{
+		Name = "Saber Simulator",
+		Desc = "[UPD] Saber Simulator",
+		PlaceIds = {3823781113},
+		Color = Color3.fromRGB(70, 140, 255),
+		Url = "https://luarun.com/s/01a2037f-7075-745f-956a-cbce466ea0ee",
+	},
+	{
+		Name = "Prison Life",
+		Desc = "Prison Life",
+		PlaceIds = {155615604},
+		Color = Color3.fromRGB(90, 110, 160),
+		Url = "https://luarun.com/s/01a203a4-31d7-7b87-9052-e78e12022474",
+	},
+}
+
+local VERSION = "v1"
+local ACCENT = Color3.fromRGB(150, 90, 255)
+
+-- ===== Services =====
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+
+local G = getgenv and getgenv() or _G
+if G.ProjectApexLoader then pcall(function() G.ProjectApexLoader:Destroy() end) end
+
+-- ===== Detect current game =====
+local function isCurrent(g)
+	for _, id in ipairs(g.PlaceIds or {}) do
+		if id == game.PlaceId then return true end
+	end
+	return false
+end
+
+local detected
+for _, g in ipairs(GAMES) do
+	g.Detected = isCurrent(g)
+	if g.Detected and not detected then detected = g end
+end
+
+-- ===== Helpers =====
+local function new(class, props, children)
+	local o = Instance.new(class)
+	for k, v in pairs(props or {}) do o[k] = v end
+	for _, c in ipairs(children or {}) do c.Parent = o end
+	return o
+end
+local function corner(r) return new("UICorner", {CornerRadius = UDim.new(0, r)}) end
+local function tween(o, t, props) TweenService:Create(o, TweenInfo.new(t, Enum.EasingStyle.Quad), props):Play() end
+
+local function notify(text)
+	pcall(function()
+		StarterGui:SetCore("SendNotification", {Title = "Project Apex", Text = text, Duration = 5})
+	end)
+end
+
+-- ===== GUI =====
+local gui = new("ScreenGui", {
+	Name = "ProjectApexLoader",
+	ResetOnSpawn = false,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	IgnoreGuiInset = true,
+})
+if syn and syn.protect_gui then pcall(syn.protect_gui, gui) end
+local ok = pcall(function() gui.Parent = (gethui and gethui()) or game:GetService("CoreGui") end)
+if not ok or not gui.Parent then gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
+G.ProjectApexLoader = gui
+
+local main = new("Frame", {
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(380, 0),
+	BackgroundColor3 = Color3.fromRGB(22, 22, 26),
+	ClipsDescendants = true,
+	Parent = gui,
+}, {
+	corner(12),
+	new("UIStroke", {Color = Color3.fromRGB(55, 55, 65), Thickness = 1}),
+})
+
+-- Title bar
+local top = new("Frame", {
+	Size = UDim2.new(1, 0, 0, 56),
+	BackgroundTransparency = 1,
+	Parent = main,
+})
+new("TextLabel", {
+	Position = UDim2.fromOffset(18, 10),
+	Size = UDim2.new(1, -70, 0, 22),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.GothamBold,
+	Text = "Project Apex Loader " .. VERSION,
+	TextColor3 = Color3.new(1, 1, 1),
+	TextSize = 17,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = top,
+})
+new("TextLabel", {
+	Position = UDim2.fromOffset(18, 32),
+	Size = UDim2.new(1, -70, 0, 16),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.Gotham,
+	Text = detected and ("Detected game: " .. detected.Name) or "You are not in a supported game",
+	TextColor3 = detected and Color3.fromRGB(90, 220, 130) or Color3.fromRGB(255, 110, 110),
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = top,
+})
+local closeBtn = new("TextButton", {
+	AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -12, 0, 14),
+	Size = UDim2.fromOffset(28, 28),
+	BackgroundColor3 = Color3.fromRGB(35, 35, 42),
+	Font = Enum.Font.GothamBold,
+	Text = "X",
+	TextColor3 = Color3.fromRGB(200, 200, 210),
+	TextSize = 13,
+	AutoButtonColor = false,
+	Parent = top,
+}, {corner(8)})
+new("Frame", {
+	Position = UDim2.fromOffset(0, 56),
+	Size = UDim2.new(1, 0, 0, 1),
+	BackgroundColor3 = Color3.fromRGB(40, 40, 48),
+	BorderSizePixel = 0,
+	Parent = main,
+})
+
+-- Game list
+local list = new("ScrollingFrame", {
+	Position = UDim2.fromOffset(10, 66),
+	Size = UDim2.new(1, -20, 1, -140),
+	BackgroundTransparency = 1,
+	BorderSizePixel = 0,
+	ScrollBarThickness = 3,
+	ScrollBarImageColor3 = ACCENT,
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	CanvasSize = UDim2.new(),
+	Parent = main,
+}, {
+	new("UIListLayout", {Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder}),
+	new("UIPadding", {PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 6)}),
+})
+
+-- Bottom bar
+local status = new("TextLabel", {
+	AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.new(0, 18, 1, -50),
+	Size = UDim2.new(1, -36, 0, 16),
+	BackgroundTransparency = 1,
+	Font = Enum.Font.Gotham,
+	Text = "",
+	TextColor3 = Color3.fromRGB(150, 150, 160),
+	TextSize = 12,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = main,
+})
+local loadBtn = new("TextButton", {
+	AnchorPoint = Vector2.new(0.5, 1),
+	Position = UDim2.new(0.5, 0, 1, -12),
+	Size = UDim2.new(1, -24, 0, 36),
+	BackgroundColor3 = Color3.fromRGB(45, 45, 55),
+	Font = Enum.Font.GothamBold,
+	Text = "Load Script",
+	TextColor3 = Color3.fromRGB(130, 130, 140),
+	TextSize = 15,
+	AutoButtonColor = false,
+	Parent = main,
+}, {corner(8)})
+
+-- ===== Entries =====
+local selected
+local entries = {}
+
+local function setStatus(text, color)
+	status.Text = text
+	status.TextColor3 = color or Color3.fromRGB(150, 150, 160)
+end
+
+local function select(g)
+	selected = g
+	for game_, e in pairs(entries) do
+		local on = game_ == g
+		tween(e.stroke, 0.15, {Color = on and ACCENT or Color3.fromRGB(40, 40, 48), Thickness = on and 1.5 or 1})
+		tween(e.frame, 0.15, {BackgroundColor3 = on and Color3.fromRGB(36, 32, 50) or Color3.fromRGB(28, 28, 34)})
+	end
+	tween(loadBtn, 0.15, {BackgroundColor3 = ACCENT, TextColor3 = Color3.new(1, 1, 1)})
+	setStatus("Selected: " .. g.Name)
+end
+
+for i, g in ipairs(GAMES) do
+	local frame = new("TextButton", {
+		Size = UDim2.new(1, 0, 0, 62),
+		BackgroundColor3 = Color3.fromRGB(28, 28, 34),
+		Text = "",
+		AutoButtonColor = false,
+		LayoutOrder = g.Detected and 0 or i,
+		Parent = list,
+	}, {corner(10)})
+	local stroke = new("UIStroke", {Color = Color3.fromRGB(40, 40, 48), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = frame})
+
+	-- Icon: real game icon for the detected game, letter badge for the rest
+	local icon = new("Frame", {
+		Position = UDim2.fromOffset(9, 9),
+		Size = UDim2.fromOffset(44, 44),
+		BackgroundColor3 = g.Color,
+		Parent = frame,
+	}, {corner(9)})
+	local initial = g.Name:gsub("^%+1%s*", ""):sub(1, 1)
+	new("TextLabel", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBlack,
+		Text = initial,
+		TextColor3 = Color3.new(1, 1, 1),
+		TextSize = 20,
+		Parent = icon,
+	})
+	if g.Detected and game.GameId ~= 0 then
+		new("ImageLabel", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Image = "rbxthumb://type=GameIcon&id=" .. game.GameId .. "&w=150&h=150",
+			Parent = icon,
+		}, {corner(9)})
+	end
+
+	local title = new("TextLabel", {
+		Position = UDim2.fromOffset(64, 12),
+		Size = UDim2.new(1, -150, 0, 20),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamMedium,
+		RichText = true,
+		Text = "Project Apex | " .. g.Name .. '  <font color="#82828C" size="12">' .. VERSION .. "</font>",
+		TextColor3 = Color3.new(1, 1, 1),
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = frame,
+	})
+	if not g.Detected then title.Size = UDim2.new(1, -74, 0, 20) end
+	new("TextLabel", {
+		Position = UDim2.fromOffset(64, 33),
+		Size = UDim2.new(1, -74, 0, 16),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.Gotham,
+		Text = g.Desc,
+		TextColor3 = Color3.fromRGB(140, 140, 150),
+		TextSize = 12,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = frame,
+	})
+	if g.Detected then
+		new("TextLabel", {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -10, 0, 12),
+			Size = UDim2.fromOffset(70, 18),
+			BackgroundColor3 = Color3.fromRGB(30, 70, 45),
+			Font = Enum.Font.GothamBold,
+			Text = "DETECTED",
+			TextColor3 = Color3.fromRGB(90, 220, 130),
+			TextSize = 10,
+			Parent = frame,
+		}, {corner(5)})
+	end
+
+	entries[g] = {frame = frame, stroke = stroke}
+
+	frame.MouseEnter:Connect(function()
+		if selected ~= g then tween(frame, 0.12, {BackgroundColor3 = Color3.fromRGB(33, 33, 40)}) end
+	end)
+	frame.MouseLeave:Connect(function()
+		if selected ~= g then tween(frame, 0.12, {BackgroundColor3 = Color3.fromRGB(28, 28, 34)}) end
+	end)
+	frame.MouseButton1Click:Connect(function() select(g) end)
+end
+
+-- ===== Toast notification =====
+local toastHolder = new("Frame", {
+	AnchorPoint = Vector2.new(1, 1),
+	Position = UDim2.new(1, -20, 1, -20),
+	Size = UDim2.fromOffset(300, 300),
+	BackgroundTransparency = 1,
+	Parent = gui,
+}, {
+	new("UIListLayout", {Padding = UDim.new(0, 8), VerticalAlignment = Enum.VerticalAlignment.Bottom, SortOrder = Enum.SortOrder.LayoutOrder}),
+})
+local toastCount = 0
+local function toast(titleText, bodyText, color)
+	toastCount += 1
+	local box = new("Frame", {
+		Size = UDim2.new(1, 0, 0, 62),
+		BackgroundColor3 = Color3.fromRGB(22, 22, 26),
+		BackgroundTransparency = 1,
+		LayoutOrder = toastCount,
+		Parent = toastHolder,
+	}, {corner(10)})
+	local stroke = new("UIStroke", {Color = color, Thickness = 1.5, Transparency = 1, Parent = box})
+	local bar = new("Frame", {
+		Position = UDim2.fromOffset(0, 0),
+		Size = UDim2.new(0, 4, 1, 0),
+		BackgroundColor3 = color,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Parent = box,
+	}, {corner(10)})
+	local t1 = new("TextLabel", {
+		Position = UDim2.fromOffset(16, 10),
+		Size = UDim2.new(1, -26, 0, 18),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		Text = titleText,
+		TextColor3 = color,
+		TextTransparency = 1,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = box,
+	})
+	local t2 = new("TextLabel", {
+		Position = UDim2.fromOffset(16, 30),
+		Size = UDim2.new(1, -26, 0, 24),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.Gotham,
+		Text = bodyText,
+		TextColor3 = Color3.fromRGB(200, 200, 210),
+		TextTransparency = 1,
+		TextSize = 12,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		Parent = box,
+	})
+	tween(box, 0.2, {BackgroundTransparency = 0})
+	tween(stroke, 0.2, {Transparency = 0})
+	tween(bar, 0.2, {BackgroundTransparency = 0})
+	tween(t1, 0.2, {TextTransparency = 0})
+	tween(t2, 0.2, {TextTransparency = 0})
+	task.delay(4, function()
+		if not box.Parent then return end
+		tween(box, 0.3, {BackgroundTransparency = 1})
+		tween(stroke, 0.3, {Transparency = 1})
+		tween(bar, 0.3, {BackgroundTransparency = 1})
+		tween(t1, 0.3, {TextTransparency = 1})
+		tween(t2, 0.3, {TextTransparency = 1})
+		task.wait(0.3)
+		box:Destroy()
+	end)
+end
+
+if detected then
+	select(detected)
+else
+	setStatus("Join a supported game to load a script")
+	task.delay(0.4, function()
+		toast("Not supported", "You are not in a supported game.", Color3.fromRGB(255, 110, 110))
+	end)
+end
+
+-- ===== Load =====
+local loading = false
+loadBtn.MouseButton1Click:Connect(function()
+	if loading then return end
+	if not selected then
+		setStatus("Select a game first!", Color3.fromRGB(255, 110, 110))
+		return
+	end
+	local g = selected
+	if not g.Detected then
+		local where = detected and ("You are in " .. detected.Name .. ", not " .. g.Name .. ".") or "You are not in a supported game."
+		toast("Wrong game", "You are not in " .. g.Name .. "." .. (detected and (" You are in " .. detected.Name .. ".") or ""), Color3.fromRGB(255, 110, 110))
+		setStatus(where, Color3.fromRGB(255, 110, 110))
+		return
+	end
+	loading = true
+	loadBtn.Text = "Loading..."
+	setStatus("Downloading " .. g.Name .. "...", ACCENT)
+
+	local okGet, src = pcall(function() return game:HttpGet(g.Url) end)
+	if not okGet or type(src) ~= "string" or #src == 0 then
+		setStatus("Download failed. Try again.", Color3.fromRGB(255, 110, 110))
+		loadBtn.Text = "Load Script"
+		loading = false
+		return
+	end
+	local fn, compileErr = loadstring(src)
+	if not fn then
+		setStatus("Script error: " .. tostring(compileErr):sub(1, 60), Color3.fromRGB(255, 110, 110))
+		loadBtn.Text = "Load Script"
+		loading = false
+		return
+	end
+
+	-- close the loader so the key system / script UI is visible
+	tween(main, 0.25, {Size = UDim2.fromOffset(380, 0)})
+	task.wait(0.25)
+	gui:Destroy()
+	G.ProjectApexLoader = nil
+
+	notify("Loading " .. g.Name .. "...")
+	task.spawn(function()
+		local okRun, err = pcall(fn)
+		if not okRun then
+			warn("[Project Apex] " .. g.Name .. " error: " .. tostring(err))
+			notify(g.Name .. " failed to load (check console F9)")
+		end
+	end)
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	tween(main, 0.2, {Size = UDim2.fromOffset(380, 0)})
+	task.wait(0.2)
+	gui:Destroy()
+	G.ProjectApexLoader = nil
+end)
+closeBtn.MouseEnter:Connect(function() tween(closeBtn, 0.12, {BackgroundColor3 = Color3.fromRGB(200, 60, 60)}) end)
+closeBtn.MouseLeave:Connect(function() tween(closeBtn, 0.12, {BackgroundColor3 = Color3.fromRGB(35, 35, 42)}) end)
+
+-- ===== Dragging (mouse + touch) =====
+do
+	local dragging, startPos, startInput
+	top.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging, startPos, startInput = true, main.Position, input.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then dragging = false end
+			end)
+		end
+	end)
+	UIS.InputChanged:Connect(function(input)
+		if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local d = input.Position - startInput
+			main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+		end
+	end)
+end
+
+-- open animation
+tween(main, 0.3, {Size = UDim2.fromOffset(380, 440)})
